@@ -2,20 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class softmax:
-    def __init__(self, inputs):
-        self.inputs = inputs
+    def __init__(self, n_inputs):
+        self.n_inputs = n_inputs
     
-    def compute(self):
-        exps = np.zeros(self.inputs.shape)
-        for idx,item in enumerate(self.inputs):
+    def compute(self, input_val):
+        exps = np.zeros(input_val.shape)
+        for idx,item in enumerate(input_val):
             exps[idx] = np.exp(item)
         exps = exps / sum(exps)
+        self.last_val = exps
         return exps
 
     def back_prop(self, output_error):
-        shape = self.inputs.shape + self.inputs.shape
+        shape = (self.n_inputs, self.n_inputs)
         jacob = np.zeros(shape)
-        exps = self.compute()
+        exps = self.last_val
         for i,e_i in enumerate(exps):
             for j,e_j in enumerate(exps):
                 if i == j:
