@@ -36,4 +36,7 @@ class fully_connected:
         jacob = self.back_prop(output_error)
         self.weights -= rate*jacob
         return jacob.sum(0).reshape(self.input_shape)
+
+    def save_weights(self, filename):
+        np.save(filename, self.weights)
         

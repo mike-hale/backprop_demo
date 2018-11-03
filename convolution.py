@@ -91,3 +91,9 @@ class convolution:
                 back[offset:offset + self.kernel_size] += back_update
 
         return back
+
+    def save_weights(self, filename):
+        fc_weights = []
+        for fc in self.fc_layers:
+            fc_weights.append(fc.weights)
+        np.save(filename, np.array(fc_weights))

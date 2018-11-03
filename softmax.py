@@ -6,7 +6,7 @@ class softmax:
         self.n_inputs = n_inputs
     
     def compute(self, input_val):
-        exps = np.zeros(input_val.shape)
+        exps = np.zeros(self.n_inputs)
         for idx,item in enumerate(input_val):
             exps[idx] = np.exp(item)
         exps = exps / sum(exps)
@@ -23,4 +23,4 @@ class softmax:
                     jacob[i,j] = e_i*(1 - e_j)
                 else:
                     jacob[i,j] = -e_i*e_j
-        return np.multiply(output_error, jacob.sum(1))
+        return jacob.dot(output_error)
