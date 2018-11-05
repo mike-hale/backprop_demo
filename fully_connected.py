@@ -25,17 +25,11 @@ class fully_connected:
             self.last_input = input_val
             return self.weights.dot(input_val.flatten())
 
-    def back_prop(self, output_error):
-        jacob = np.repeat(np.expand_dims(self.last_input.flatten(), 0), self.n_outputs, 0)
-        # Iterate through rows in weights
-        for idx,row in enumerate(jacob):
-            jacob[idx] = row*output_error[idx]
-        return jacob
-
     def update(self, output_error, rate):
-        jacob = self.back_prop(output_error)
+        input_error = self.weights.T.dot(output_error)
+        jacob = output_error[:,np.newaxis].dot(self.last_input.flatten()[np.newaxis,:])
         self.weights -= rate*jacob
-        return jacob.sum(0).reshape(self.input_shape)
+        return input_error.reshape(self.input_shape)
 
     def save_weights(self, filename):
         np.save(filename, self.weights)
