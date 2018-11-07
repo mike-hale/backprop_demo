@@ -13,20 +13,19 @@ class convolution:
         assert (input_shape[0] - kernel_size) % stride == 0
         assert (input_shape[1] - kernel_size) % stride == 0
         self.output_shape = ((input_shape[0] - kernel_size) // stride + 1, 
-                             (input_shape[0] - kernel_size) // stride + 1)
+                             (input_shape[0] - kernel_size) // stride + 1,)
         if weights == 'rand':
             self.weights = 2*np.random.random_sample((kernel_size, kernel_size, n_outputs, input_depth)) - 1
     
     def compute(self, input_val, batched=False):
         self.last_input = input_val
-        output = np.zeros((self.n_outputs,) + self.output_shape)
-        for i in range(output.shape[1]):
-            for j in range(output.shape[2]):
+        output = np.zeros(self.output_shape + (self.n_outputs,))
+        for i in range(output.shape[0]):
+            for j in range(output.shape[1]):
                 temp_input = input_val[self.stride*i:self.stride*i + self.kernel_size,
                                        self.stride*j:self.stride*j + self.kernel_size]
-                for n in range(self.kernel_size):
-                    for m in range(self.kernel_size):
-                        output[:,i,j] += self.weights[n,m].dot(input_val[self.stride*i + n,self.stride*j + m])[0]
+                for k in range(self.n_outputs):
+                    output[i,j,k] = self.weights[:,:,k,:].flatten().dot(temp_input.flatten())
                         #out = output[:,i,j]
         return output
 
@@ -34,15 +33,16 @@ class convolution:
         input_error = np.zeros(self.input_shape + (self.input_depth,))
         for i in range(self.output_shape[0]):
             for j in range(self.output_shape[1]):
-                for m in range(self.kernel_size):
-                    for n in range(self.kernel_size):
-                        input_error[i*self.stride + m,j*self.stride + n] += self.weights[m,n].T.dot(output_error[i,j])
-                        if self.input_depth == 1:
-                            jacob = self.last_input[i+n,j+m]*output_error[i,j,:,np.newaxis]
-                            self.weights[m,n] -= rate*jacob
-                        else:
-                            jacob = output_error[i,j,:,np.newaxis].dot(self.last_input[np.newaxis,i+n,j+m])
-                            self.weights[m,n] -= rate*jacob
+                for k in range(self.n_outputs):
+                    input_error[i*self.stride:i*self.stride + self.kernel_size,
+                                j*self.stride:j*self.stride + self.kernel_size] += output_error[i,j,k]*self.weights[:,:,k]
+                    last_input = self.last_input[i*self.stride:i*self.stride + self.kernel_size,
+                                                 j*self.stride:j*self.stride + self.kernel_size]
+                    jacob = output_error[i,j,k]*last_input
+                    if self.input_depth == 1:
+                        self.weights[:,:,k,0] -= rate*jacob
+                    else:
+                        self.weights[:,:,k,:] -= rate*jacob
         return input_error
 
     def save_weights(self, filename):
