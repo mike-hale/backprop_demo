@@ -9,8 +9,10 @@ class fully_connected:
         self.n_outputs = n_outputs
         if weights is None:
             self.weights = np.zeros((n_outputs, n_inputs))
+            self.bias = np.zeros((n_outputs))
         elif weights == 'rand':
             self.weights = 2*np.random.random_sample((n_outputs, n_inputs)) - 1
+            self.bias = 2*np.random.random_sample((n_outputs)) - 1
         else:
             self.weights = weights
 
@@ -23,12 +25,13 @@ class fully_connected:
             return ret
         else:
             self.last_input = input_val
-            return self.weights.dot(input_val.flatten())
+            return self.weights.dot(input_val.flatten()) + self.bias
 
     def update(self, output_error, rate):
         input_error = self.weights.T.dot(output_error)
         jacob = output_error[:,np.newaxis].dot(self.last_input.flatten()[np.newaxis,:])
         self.weights -= rate*jacob
+        self.bias -= rate*output_error
         return input_error.reshape(self.input_shape)
 
     def save_weights(self, filename):

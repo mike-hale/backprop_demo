@@ -12,11 +12,11 @@ from datetime import timedelta
 
 a = convolution((28,28,),1,8,5,1,weights='rand')
 a_pool = maxpool((24,24,),8,2,2)
-a_out = logistic_regression((12,12,8))
+a_out = relu((12,12,8))
 b = convolution((12,12,),8,16,5,1,weights='rand')
-b_out = logistic_regression((8,8,16))
+b_out = relu((8,8,16))
 c = fully_connected((8,8,16,),10,weights='rand')
-c_out = softmax(10)
+c_out = softmax((10))
 
 def forward(inputs, batched=False):
     out = a.compute(inputs, batched)

@@ -15,7 +15,8 @@ class convolution:
         self.output_shape = ((input_shape[0] - kernel_size) // stride + 1, 
                              (input_shape[0] - kernel_size) // stride + 1,)
         if weights == 'rand':
-            self.weights = 2*np.random.random_sample((kernel_size, kernel_size, n_outputs, input_depth)) - 1
+            self.weights = (2/(self.kernel_size**2))*np.random.random_sample((kernel_size, kernel_size, n_outputs, input_depth)) - 1/(self.kernel_size**2)
+            self.bias = (2/(self.kernel_size**2))*np.random.random_sample((n_outputs)) - 1/(self.kernel_size**2)
     
     def compute(self, input_val, batched=False):
         self.last_input = input_val
@@ -25,7 +26,7 @@ class convolution:
                 temp_input = input_val[self.stride*i:self.stride*i + self.kernel_size,
                                        self.stride*j:self.stride*j + self.kernel_size]
                 for k in range(self.n_outputs):
-                    output[i,j,k] = self.weights[:,:,k,:].flatten().dot(temp_input.flatten())
+                    output[i,j,k] = self.weights[:,:,k,:].flatten().dot(temp_input.flatten()) + self.bias[k]
                         #out = output[:,i,j]
         return output
 
@@ -43,6 +44,7 @@ class convolution:
                         self.weights[:,:,k,0] -= rate*jacob
                     else:
                         self.weights[:,:,k,:] -= rate*jacob
+        self.bias -= rate*output_error.sum(axis=(0,1))
         return input_error
 
     def save_weights(self, filename):
